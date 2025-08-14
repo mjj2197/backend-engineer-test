@@ -1,25 +1,33 @@
-version: '3.8'
+version: "3.9"
 
 services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydatabase
-    volumes:
-      - db_data:/var/lib/postgresql/data
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: indexer
     ports:
       - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d indexer"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
 
   api:
     build: .
-    depends_on:
-      - db
+    command: ["bun", "run", "dev"]
     environment:
-      DATABASE_URL: postgres://myuser:mypassword@db:5432/mydatabase
+      DATABASE_URL: postgres://app:app@db:5432/indexer
+      PORT: "3000"
     ports:
       - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
-  db_data:
+  dbdata:

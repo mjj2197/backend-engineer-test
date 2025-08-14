@@ -3,8 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "bun src/index.ts",
-    "run-docker": "docker-compose up -d --build"
+    "run-docker": "docker-compose up -d --build",
+    "dev": "bun run src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -14,6 +16,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "express": "^5.1.0",
     "fastify": "^4.28.1",
     "pg": "^8.12.0"
   }

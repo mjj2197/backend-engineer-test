@@ -1,16 +1,12 @@
-# Use an official Node.js runtime as a parent image
-FROM oven/bun:1
+FROM oven/bun:1.1.20
 
-# Set the working directory in the container
-WORKDIR /usr/src/app
-
-# Copy the rest of the application code
-COPY . .
-
+WORKDIR /app
+COPY package.json bunfig.toml ./
 RUN bun install
 
-# Expose the port the app runs on
-EXPOSE 3000
+COPY src ./src
+COPY spec ./spec
+COPY src/sql/schema.sql ./src/sql/schema.sql
 
-# Define the command to run the app
-ENTRYPOINT bun start
+EXPOSE 3000
+CMD ["bun", "run", "dev"]

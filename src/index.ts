@@ -1,64 +1,91 @@
-import Fastify from 'fastify';
-import { Pool } from 'pg';
-import { randomUUID } from 'crypto';
+import express from "express";
+import bodyParser from "body-parser";
+import { initDb } from "./db.js";
+import { router } from "./routes.js";
 
-const fastify = Fastify({ logger: true });
+const PORT = Number(process.env.PORT ?? 3000);
 
-fastify.get('/', async (request, reply) => {
-  return { hello: 'world' };
+async function main() {
+	await initDb();
+
+	const app = express();
+	app.use(bodyParser.json({ limit: "1mb" }));
+	app.use(router);
+
+	app.listen(PORT, () => {
+		console.log(`API listening on :${PORT}`);
+	});
+}
+
+main().catch((e) => {
+	console.error(e);
+	process.exit(1);
 });
 
-async function testPostgres(pool: Pool) {
-  const id = randomUUID();
-  const name = 'Satoshi';
-  const email = 'Nakamoto';
 
-  await pool.query(`DELETE FROM users;`);
 
-  await pool.query(`
-    INSERT INTO users (id, name, email)
-    VALUES ($1, $2, $3);
-  `, [id, name, email]);
 
-  const { rows } = await pool.query(`
-    SELECT * FROM users;
-  `);
+// import Fastify from 'fastify';
+// import { Pool } from 'pg';
+// import { randomUUID } from 'crypto';
 
-  console.log('USERS', rows);
-}
+// const fastify = Fastify({ logger: true });
 
-async function createTables(pool: Pool) {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL
-    );
-  `);
-}
+// fastify.get('/', async (request, reply) => {
+//   return { hello: 'world' };
+// });
 
-async function bootstrap() {
-  console.log('Bootstrapping...');
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL is required');
-  }
+// async function testPostgres(pool: Pool) {
+//   const id = randomUUID();
+//   const name = 'Satoshi';
+//   const email = 'Nakamoto';
 
-  const pool = new Pool({
-    connectionString: databaseUrl
-  });
+//   await pool.query(`DELETE FROM users;`);
 
-  await createTables(pool);
-  await testPostgres(pool);
-}
+//   await pool.query(`
+//     INSERT INTO users (id, name, email)
+//     VALUES ($1, $2, $3);
+//   `, [id, name, email]);
 
-try {
-  await bootstrap();
-  await fastify.listen({
-    port: 3000,
-    host: '0.0.0.0'
-  })
-} catch (err) {
-  fastify.log.error(err)
-  process.exit(1)
-};
+//   const { rows } = await pool.query(`
+//     SELECT * FROM users;
+//   `);
+
+//   console.log('USERS', rows);
+// }
+
+// async function createTables(pool: Pool) {
+//   await pool.query(`
+//     CREATE TABLE IF NOT EXISTS users (
+//       id TEXT PRIMARY KEY,
+//       name TEXT NOT NULL,
+//       email TEXT NOT NULL
+//     );
+//   `);
+// }
+
+// async function bootstrap() {
+//   console.log('Bootstrapping...');
+//   const databaseUrl = process.env.DATABASE_URL;
+//   if (!databaseUrl) {
+//     throw new Error('DATABASE_URL is required');
+//   }
+
+//   const pool = new Pool({
+//     connectionString: databaseUrl
+//   });
+
+//   await createTables(pool);
+//   await testPostgres(pool);
+// }
+
+// try {
+//   await bootstrap();
+//   await fastify.listen({
+//     port: 3000,
+//     host: '0.0.0.0'
+//   })
+// } catch (err) {
+//   fastify.log.error(err)
+//   process.exit(1)
+// };
